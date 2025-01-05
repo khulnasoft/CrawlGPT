@@ -237,7 +237,7 @@ export async function write(config: Config) {
   return nextFileNameString;
 }
 
-class GPTCrawlerCore {
+class CrawlGPTCore {
   config: Config;
 
   constructor(config: Config) {
@@ -260,4 +260,4 @@ class GPTCrawlerCore {
   }
 }
 
-export default GPTCrawlerCore;
+export default CrawlGPTCore;

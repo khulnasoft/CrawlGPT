@@ -2,8 +2,8 @@ import swaggerAutogen from "swagger-autogen";
 
 const doc = {
   info: {
-    title: "GPT Crawler API",
-    description: "GPT Crawler",
+    title: "Crawl GPT API",
+    description: "Crawl GPT",
   },
   host: "localhost:5000",
 };

@@ -6,7 +6,7 @@ import { configDotenv } from "dotenv";
 import swaggerUi from "swagger-ui-express";
 // @ts-ignore
 import swaggerDocument from "../swagger-output.json" assert { type: "json" };
-import GPTCrawlerCore from "./core.js";
+import CrawlGPTCore from "./core.js";
 import { PathLike } from "fs";
 
 configDotenv();
@@ -24,7 +24,7 @@ app.post("/crawl", async (req, res) => {
   const config: Config = req.body;
   try {
     const validatedConfig = configSchema.parse(config);
-    const crawler = new GPTCrawlerCore(validatedConfig);
+    const crawler = new CrawlGPTCore(validatedConfig);
     await crawler.crawl();
     const outputFileName: PathLike = await crawler.write();
     const outputFileContent = await readFile(outputFileName, "utf-8");

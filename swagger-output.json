@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "GPT Crawler API",
-    "description": "GPT Crawler",
+    "title": "Crawl GPT API",
+    "description": "Crawl GPT",
     "version": "1.0.0"
   },
   "host": "localhost:5000",
