@@ -143,19 +143,3 @@ Use this option for API access to your generated knowledge that you can integrat
 3. Choose "upload" and upload the file you generated
 
 ![Gif of how to upload to an assistant](https://github.com/khulnasoft/crawlgpt/assets/844291/06e6ad36-e2ba-4c6e-8d5a-bf329140de49)
-
-## Contributing
-
-Know how to make this project better? Send a PR!
-
-<br>
-<br>
-
-<p align="center">
-   <a href="https://www.khulnasoft.com/m/developers">
-      <picture>
-         <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/844291/230786554-eb225eeb-2f6b-4286-b8c2-535b1131744a.png">
-         <img width="250" alt="Made with love by Khulnasoft.com" src="https://user-images.githubusercontent.com/844291/230786555-a58479e4-75f3-4222-a6eb-74c5af953eac.png">
-       </picture>
-   </a>
-</p>
