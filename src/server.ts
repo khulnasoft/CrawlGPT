@@ -4,8 +4,8 @@ import { readFile } from "fs/promises";
 import { Config, configSchema } from "./config.js";
 import { configDotenv } from "dotenv";
 import swaggerUi from "swagger-ui-express";
-// @ts-ignore
-import swaggerDocument from "../swagger-output.json" assert { type: "json" };
+// Load swagger document using fs instead of import assertion
+// @ts-ignore (for TypeScript to ignore the dynamic nature of the JSON)
 import CrawlGPTCore from "./core.js";
 import { PathLike } from "fs";
 
@@ -17,6 +17,20 @@ const hostname = process.env.API_HOST || "localhost";
 
 app.use(cors());
 app.use(express.json());
+
+// Load swagger document from file
+let swaggerDocument: any;
+try {
+  const swaggerFile = await readFile(
+    new URL("../swagger-output.json", import.meta.url),
+    "utf-8",
+  );
+  swaggerDocument = JSON.parse(swaggerFile);
+} catch (error) {
+  console.error("Error loading swagger document:", error);
+  process.exit(1);
+}
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Define a POST route to accept config and run the crawler

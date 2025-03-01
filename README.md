@@ -53,7 +53,7 @@ E.g. to crawl the Khulnasoft.com docs to make our custom GPT you can use:
 
 ```ts
 export const defaultConfig: Config = {
-  url: "https://www.khulnasoft.com/c/docs/developers",
+  url: "https://synopkg.github.io/synopkg",
   match: "https://www.khulnasoft.com/c/docs/**",
   selector: `.docs-builder-container`,
   maxPagesToCrawl: 50,
