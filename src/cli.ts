@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { Config } from "./config.js";
+import { Config, OutputFormat } from "./config.js";
 import { crawl, write } from "./core.js";
 import { createRequire } from "node:module";
 import inquirer from "inquirer";
@@ -36,6 +36,22 @@ async function handler(options: Config) {
       selector,
       maxPagesToCrawl,
       outputFileName,
+      requestDelay: 0,
+      retry: {
+        maxRetries: 3,
+        initialDelay: 1000,
+        maxDelay: 30000
+      },
+      deduplication: {
+        enabled: false,
+        method: "exact",
+        similarityThreshold: 0.9
+      },
+      outputFormat: OutputFormat.JSON,
+      contentFiltering: {
+        includePatterns: [],
+        excludePatterns: []
+      }
     };
 
     if (!config.url || !config.match || !config.selector) {

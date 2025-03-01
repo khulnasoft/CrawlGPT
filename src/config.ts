@@ -8,7 +8,7 @@ import { configDotenv } from "dotenv";
 export enum OutputFormat {
   JSON = "json",
   CSV = "csv",
-  MARKDOWN = "markdown"
+  MARKDOWN = "markdown",
 }
 
 configDotenv();
@@ -25,13 +25,13 @@ export const configSchema = z.object({
   url: z.string(),
   /**
    * Pattern to match against for links on a page to subsequently crawl
-   * @example "https://www.khulnasoft.com/c/docs/**"
+   * @example "https://synopkg.github.io/synopkg/**"
    * @default ""
    */
   match: z.string().or(z.array(z.string())),
   /**
    * Pattern to match against for links on a page to exclude from crawling
-   * @example "https://www.khulnasoft.com/c/docs/**"
+   * @example "https://synopkg.github.io/synopkg/**"
    * @default ""
    */
   exclude: z.string().or(z.array(z.string())).optional(),
@@ -107,73 +107,85 @@ export const configSchema = z.object({
   /**
    * Retry configuration for failed requests
    */
-  retry: z.object({
-    /**
-     * Maximum number of retries for a failed request
-     * @example 3
-     * @default 3
-     */
-    maxRetries: z.number().int().nonnegative().optional().default(3),
-    /**
-     * Initial delay in milliseconds before the first retry
-     * @example 1000
-     * @default 1000
-     */
-    initialDelay: z.number().int().positive().optional().default(1000),
-    /**
-     * Maximum delay in milliseconds between retries
-     * @example 30000
-     * @default 30000
-     */
-    maxDelay: z.number().int().positive().optional().default(30000),
-  }).optional().default({}),
+  retry: z
+    .object({
+      /**
+       * Maximum number of retries for a failed request
+       * @example 3
+       * @default 3
+       */
+      maxRetries: z.number().int().nonnegative().optional().default(3),
+      /**
+       * Initial delay in milliseconds before the first retry
+       * @example 1000
+       * @default 1000
+       */
+      initialDelay: z.number().int().positive().optional().default(1000),
+      /**
+       * Maximum delay in milliseconds between retries
+       * @example 30000
+       * @default 30000
+       */
+      maxDelay: z.number().int().positive().optional().default(30000),
+    })
+    .optional()
+    .default({}),
   /**
    * Content deduplication settings
    */
-  deduplication: z.object({
-    /**
-     * Enable content deduplication
-     * @default false
-     */
-    enabled: z.boolean().optional().default(false),
-    /**
-     * Method to use for deduplication
-     * 'exact': Exact string matching
-     * 'similarity': Use similarity threshold
-     * @default "exact"
-     */
-    method: z.enum(["exact", "similarity"]).optional().default("exact"),
-    /**
-     * Similarity threshold (0-1) for content to be considered duplicate when using similarity method
-     * @example 0.9
-     * @default 0.9
-     */
-    similarityThreshold: z.number().min(0).max(1).optional().default(0.9),
-  }).optional().default({}),
+  deduplication: z
+    .object({
+      /**
+       * Enable content deduplication
+       * @default false
+       */
+      enabled: z.boolean().optional().default(false),
+      /**
+       * Method to use for deduplication
+       * 'exact': Exact string matching
+       * 'similarity': Use similarity threshold
+       * @default "exact"
+       */
+      method: z.enum(["exact", "similarity"]).optional().default("exact"),
+      /**
+       * Similarity threshold (0-1) for content to be considered duplicate when using similarity method
+       * @example 0.9
+       * @default 0.9
+       */
+      similarityThreshold: z.number().min(0).max(1).optional().default(0.9),
+    })
+    .optional()
+    .default({}),
   /**
    * Output format configuration
    */
-  outputFormat: z.nativeEnum(OutputFormat).optional().default(OutputFormat.JSON),
+  outputFormat: z
+    .nativeEnum(OutputFormat)
+    .optional()
+    .default(OutputFormat.JSON),
   /**
    * Content filtering settings
    */
-  contentFiltering: z.object({
-    /**
-     * Patterns to include in output (content must match at least one)
-     * @example ["product", "pricing"]
-     */
-    includePatterns: z.array(z.string()).optional(),
-    /**
-     * Patterns to exclude from output
-     * @example ["login", "sign up"]
-     */
-    excludePatterns: z.array(z.string()).optional(),
-    /**
-     * Minimum content length to include in output
-     * @example 100
-     */
-    minContentLength: z.number().int().nonnegative().optional(),
-  }).optional().default({}),
+  contentFiltering: z
+    .object({
+      /**
+       * Patterns to include in output (content must match at least one)
+       * @example ["product", "pricing"]
+       */
+      includePatterns: z.array(z.string()).optional(),
+      /**
+       * Patterns to exclude from output
+       * @example ["login", "sign up"]
+       */
+      excludePatterns: z.array(z.string()).optional(),
+      /**
+       * Minimum content length to include in output
+       * @example 100
+       */
+      minContentLength: z.number().int().nonnegative().optional(),
+    })
+    .optional()
+    .default({}),
 });
 
 export type Config = z.infer<typeof configSchema>;

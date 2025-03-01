@@ -8,9 +8,9 @@ import { isWithinTokenLimit } from "gpt-tokenizer";
 import { PathLike } from "fs";
 import { stringify } from "csv-stringify/sync";
 import * as crypto from "crypto";
-import * as fs from 'fs';
-import * as path from 'path';
-import { marked } from 'marked';
+import * as fs from "fs";
+import * as path from "path";
+import { marked } from "marked";
 
 let pageCounter = 0;
 let crawler: PlaywrightCrawler;
@@ -19,22 +19,22 @@ let contentHashes = new Set<string>();
 
 // Helper function to create content hash for deduplication
 function createContentHash(content: string): string {
-  return crypto.createHash('md5').update(content).digest('hex');
+  return crypto.createHash("md5").update(content).digest("hex");
 }
 
 // Helper function for delay with rate limiting
 async function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Helper function for exponential backoff
 async function retryWithExponentialBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number,
-  baseDelay: number
+  baseDelay: number,
 ): Promise<T> {
   let retries = 0;
-  
+
   while (true) {
     try {
       return await fn();
@@ -43,9 +43,11 @@ async function retryWithExponentialBackoff<T>(
       if (retries >= maxRetries) {
         throw error;
       }
-      
+
       const delayTime = baseDelay * Math.pow(2, retries - 1);
-      console.log(`Retry attempt ${retries}/${maxRetries} after ${delayTime}ms`);
+      console.log(
+        `Retry attempt ${retries}/${maxRetries} after ${delayTime}ms`,
+      );
       await delay(delayTime);
     }
   }
@@ -56,31 +58,37 @@ function filterContent(content: string, patterns: RegExp[]): string {
   if (!patterns || patterns.length === 0) {
     return content;
   }
-  
+
   let filteredContent = content;
   for (const pattern of patterns) {
-    filteredContent = filteredContent.replace(pattern, '');
+    filteredContent = filteredContent.replace(pattern, "");
   }
-  
+
   return filteredContent;
 }
 
 // Helper function to check if content matches any include pattern
-function shouldIncludeContent(content: string, includePatterns: RegExp[]): boolean {
+function shouldIncludeContent(
+  content: string,
+  includePatterns: RegExp[],
+): boolean {
   if (!includePatterns || includePatterns.length === 0) {
     return true;
   }
-  
-  return includePatterns.some(pattern => pattern.test(content));
+
+  return includePatterns.some((pattern) => pattern.test(content));
 }
 
 // Helper function to check if content matches any exclude pattern
-function shouldExcludeContent(content: string, excludePatterns: RegExp[]): boolean {
+function shouldExcludeContent(
+  content: string,
+  excludePatterns: RegExp[],
+): boolean {
   if (!excludePatterns || excludePatterns.length === 0) {
     return false;
   }
-  
-  return excludePatterns.some(pattern => pattern.test(content));
+
+  return excludePatterns.some((pattern) => pattern.test(content));
 }
 
 export function getPageHtml(page: Page, selector = "body") {
@@ -123,7 +131,7 @@ export async function waitForXPath(page: Page, xpath: string, timeout: number) {
 
 export async function crawl(config: Config) {
   configSchema.parse(config);
-  
+
   // Reset tracking sets on each crawl
   visitedUrls = new Set<string>();
   contentHashes = new Set<string>();
@@ -138,19 +146,24 @@ export async function crawl(config: Config) {
           // Implement rate limiting between requests
           // Implement rate limiting between requests
           if (config.requestDelay && pageCounter > 0) {
-            log.info(`Rate limiting: Waiting ${config.requestDelay}ms before processing next page`);
+            log.info(
+              `Rate limiting: Waiting ${config.requestDelay}ms before processing next page`,
+            );
             await delay(config.requestDelay);
           }
           // Skip duplicate URLs if deduplication is enabled
-          if (config.deduplication?.enabled && visitedUrls.has(request.loadedUrl)) {
+          if (
+            config.deduplication?.enabled &&
+            visitedUrls.has(request.loadedUrl)
+          ) {
             log.info(`Skipping duplicate URL: ${request.loadedUrl}`);
             return;
           }
           visitedUrls.add(request.loadedUrl);
-          
-          let title = '';
-          let html = '';
-          
+
+          let title = "";
+          let html = "";
+
           // Implement retry logic with exponential backoff for page actions
           try {
             await retryWithExponentialBackoff(
@@ -160,7 +173,7 @@ export async function crawl(config: Config) {
                 log.info(
                   `Crawling: Page ${pageCounter} / ${config.maxPagesToCrawl} - URL: ${request.loadedUrl}...`,
                 );
-              
+
                 // Use custom handling for XPath selector
                 if (config.selector) {
                   if (config.selector.startsWith("/")) {
@@ -175,71 +188,94 @@ export async function crawl(config: Config) {
                     });
                   }
                 }
-              
+
                 html = await getPageHtml(page, config.selector);
                 return { title, html };
               },
               config.retry?.maxRetries || 3,
-              config.retry?.initialDelay || 1000
+              config.retry?.initialDelay || 1000,
             );
           } catch (error) {
-            log.error(`Failed to process ${request.loadedUrl} after ${config.retry?.maxRetries || 3} retries: ${error}`);
+            log.error(
+              `Failed to process ${request.loadedUrl} after ${config.retry?.maxRetries || 3} retries: ${error}`,
+            );
             return;
           }
-          
+
           // Apply content filtering if configured
           let filteredHtml = html;
-          
+
           // Apply general content filtering - this should be replaced with more specific filtering
           // logic based on our configuration structure
-          
+
           // Check include patterns
-          if (config.contentFiltering?.includePatterns && config.contentFiltering.includePatterns.length > 0) {
-            const patterns = config.contentFiltering.includePatterns.map(pattern => new RegExp(pattern, 'g'));
+          if (
+            config.contentFiltering?.includePatterns &&
+            config.contentFiltering.includePatterns.length > 0
+          ) {
+            const patterns = config.contentFiltering.includePatterns.map(
+              (pattern) => new RegExp(pattern, "g"),
+            );
             // Here we could apply specific filtering based on include patterns if needed
           }
-          
+
           // Check include patterns
-          if (config.contentFiltering?.includePatterns && config.contentFiltering.includePatterns.length > 0) {
-            const patterns = config.contentFiltering.includePatterns.map(pattern => new RegExp(pattern));
+          if (
+            config.contentFiltering?.includePatterns &&
+            config.contentFiltering.includePatterns.length > 0
+          ) {
+            const patterns = config.contentFiltering.includePatterns.map(
+              (pattern) => new RegExp(pattern),
+            );
             if (!shouldIncludeContent(html, patterns)) {
-              log.info(`Skipping page that doesn't match include patterns: ${request.loadedUrl}`);
+              log.info(
+                `Skipping page that doesn't match include patterns: ${request.loadedUrl}`,
+              );
               return;
             }
           }
-          
+
           // Check exclude patterns
-          if (config.contentFiltering?.excludePatterns && config.contentFiltering.excludePatterns.length > 0) {
-            const patterns = config.contentFiltering.excludePatterns.map(pattern => new RegExp(pattern));
+          if (
+            config.contentFiltering?.excludePatterns &&
+            config.contentFiltering.excludePatterns.length > 0
+          ) {
+            const patterns = config.contentFiltering.excludePatterns.map(
+              (pattern) => new RegExp(pattern),
+            );
             if (shouldExcludeContent(html, patterns)) {
-              log.info(`Skipping page that matches exclude patterns: ${request.loadedUrl}`);
+              log.info(
+                `Skipping page that matches exclude patterns: ${request.loadedUrl}`,
+              );
               return;
             }
           }
-          
+
           // Content deduplication
           if (config.deduplication?.enabled) {
             const contentHash = createContentHash(filteredHtml);
-            
+
             // Use similarity method if configured
-            if (config.deduplication.method === 'similarity') {
+            if (config.deduplication.method === "similarity") {
               // Here we would implement similarity comparison logic
               // This would require a more complex algorithm to compare content similarity
               // For now, we're just using the exact hash method
             }
-            
+
             if (contentHashes.has(contentHash)) {
-              log.info(`Skipping page with duplicate content: ${request.loadedUrl}`);
+              log.info(
+                `Skipping page with duplicate content: ${request.loadedUrl}`,
+              );
               return;
             }
             contentHashes.add(contentHash);
           }
-          
+
           // Save results as JSON to ./storage/datasets/default
-          await pushData({ 
-            title, 
-            url: request.loadedUrl, 
-            html: filteredHtml 
+          await pushData({
+            title,
+            url: request.loadedUrl,
+            html: filteredHtml,
           });
           if (config.onVisitPage) {
             await config.onVisitPage({ page, pushData });
@@ -333,32 +369,34 @@ export async function write(config: Config) {
   const getExtensionByFormat = (format: OutputFormat): string => {
     switch (format) {
       case OutputFormat.JSON:
-        return '.json';
+        return ".json";
       case OutputFormat.CSV:
-        return '.csv';
+        return ".csv";
       case OutputFormat.MARKDOWN:
-        return '.md';
+        return ".md";
       default:
-        return '.json';
+        return ".json";
     }
   };
 
   const nextFileName = (): string => {
     // Get the appropriate file extension based on output format
-    const extension = getExtensionByFormat(config.outputFormat || OutputFormat.JSON);
+    const extension = getExtensionByFormat(
+      config.outputFormat || OutputFormat.JSON,
+    );
     // Remove any existing extension and add the correct one
     const baseName = config.outputFileName.replace(/\.[^/.]+$/, "");
     return `${baseName}-${fileCounter}${extension}`;
   };
   const writeBatchToFile = async (): Promise<void> => {
     nextFileNameString = nextFileName();
-    
+
     // Create output directory if it doesn't exist
     const outputDir = path.dirname(nextFileNameString.toString());
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    
+
     // Write the data in the appropriate format
     switch (config.outputFormat) {
       case OutputFormat.CSV:
@@ -366,21 +404,21 @@ export async function write(config: Config) {
           nextFileNameString,
           stringify(currentResults, {
             header: true,
-            columns: Object.keys(currentResults[0] || {})
-          })
+            columns: Object.keys(currentResults[0] || {}),
+          }),
         );
         break;
-        
+
       case OutputFormat.MARKDOWN:
-        let mdContent = '# Crawled Content\n\n';
+        let mdContent = "# Crawled Content\n\n";
         currentResults.forEach((item, index) => {
-          mdContent += `## ${index + 1}. ${item.title || 'Untitled'}\n\n`;
+          mdContent += `## ${index + 1}. ${item.title || "Untitled"}\n\n`;
           mdContent += `**URL:** ${item.url}\n\n`;
           mdContent += `### Content\n\n${item.html}\n\n---\n\n`;
         });
         await writeFile(nextFileNameString, mdContent);
         break;
-        
+
       case OutputFormat.JSON:
       default:
         await writeFile(
@@ -389,15 +427,17 @@ export async function write(config: Config) {
         );
         break;
     }
-    
-    console.log(`Wrote ${currentResults.length} items to ${nextFileNameString}`);
-    
+
+    console.log(
+      `Wrote ${currentResults.length} items to ${nextFileNameString}`,
+    );
+
     // Reset the batch
     currentResults = [];
     currentSize = 0;
     fileCounter++;
   };
-  
+
   let estimatedTokens: number = 0;
 
   const addContentOrSplit = async (
