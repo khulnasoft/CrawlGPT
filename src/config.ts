@@ -2,6 +2,15 @@ import { z } from "zod";
 import type { Page } from "playwright";
 import { configDotenv } from "dotenv";
 
+/**
+ * Enum for supported output formats
+ */
+export enum OutputFormat {
+  JSON = "json",
+  CSV = "csv",
+  MARKDOWN = "markdown",
+}
+
 configDotenv();
 
 const Page: z.ZodType<Page> = z.any();
@@ -9,20 +18,20 @@ const Page: z.ZodType<Page> = z.any();
 export const configSchema = z.object({
   /**
    * URL to start the crawl, if url is a sitemap, it will crawl all pages in the sitemap
-   * @example "https://www.khulnasoft.com/c/docs/developers"
+   * @example "https://synopkg.github.io/synopkg"
    * @example "https://www.khulnasoft.com/sitemap.xml"
    * @default ""
    */
   url: z.string(),
   /**
    * Pattern to match against for links on a page to subsequently crawl
-   * @example "https://www.khulnasoft.com/c/docs/**"
+   * @example "https://synopkg.github.io/synopkg/**"
    * @default ""
    */
   match: z.string().or(z.array(z.string())),
   /**
    * Pattern to match against for links on a page to exclude from crawling
-   * @example "https://www.khulnasoft.com/c/docs/**"
+   * @example "https://synopkg.github.io/synopkg/**"
    * @default ""
    */
   exclude: z.string().or(z.array(z.string())).optional(),
@@ -63,7 +72,13 @@ export const configSchema = z.object({
     .args(
       z.object({
         page: Page,
-        pushData: z.function().args(z.any()).returns(z.promise(z.void())),
+          pushData: z
+          .function()
+          .args(
+            z.union([z.record(z.any()), z.array(z.record(z.any()))]),
+            z.string().optional()
+          )
+          .returns(z.promise(z.void())),
       }),
     )
     .returns(z.promise(z.void()))
@@ -83,8 +98,97 @@ export const configSchema = z.object({
   maxFileSize: z.number().int().positive().optional(),
   /** Optional maximum number tokens to include in the output file
    * @example 5000
+   * @example 5000
    */
   maxTokens: z.number().int().positive().optional(),
+  /**
+   * Rate limiting: Delay between requests in milliseconds
+   * @example 1000
+   * @default 0
+   */
+  requestDelay: z.number().int().nonnegative().optional().default(0),
+  /**
+   * Retry configuration for failed requests
+   */
+  retry: z
+    .object({
+      /**
+       * Maximum number of retries for a failed request
+       * @example 3
+       * @default 3
+       */
+      maxRetries: z.number().int().nonnegative().optional().default(3),
+      /**
+       * Initial delay in milliseconds before the first retry
+       * @example 1000
+       * @default 1000
+       */
+      initialDelay: z.number().int().positive().optional().default(1000),
+      /**
+       * Maximum delay in milliseconds between retries
+       * @example 30000
+       * @default 30000
+       */
+      maxDelay: z.number().int().positive().optional().default(30000),
+    })
+    .optional()
+    .default({}),
+  /**
+   * Content deduplication settings
+   */
+  deduplication: z
+    .object({
+      /**
+       * Enable content deduplication
+       * @default false
+       */
+      enabled: z.boolean().optional().default(false),
+      /**
+       * Method to use for deduplication
+       * 'exact': Exact string matching
+       * 'similarity': Use similarity threshold
+       * @default "exact"
+       */
+      method: z.enum(["exact", "similarity"]).optional().default("exact"),
+      /**
+       * Similarity threshold (0-1) for content to be considered duplicate when using similarity method
+       * @example 0.9
+       * @default 0.9
+       */
+      similarityThreshold: z.number().min(0).max(1).optional().default(0.9),
+    })
+    .optional()
+    .default({}),
+  /**
+   * Output format configuration
+   */
+  outputFormat: z
+    .nativeEnum(OutputFormat)
+    .optional()
+    .default(OutputFormat.JSON),
+  /**
+   * Content filtering settings
+   */
+  contentFiltering: z
+    .object({
+      /**
+       * Patterns to include in output (content must match at least one)
+       * @example ["product", "pricing"]
+       */
+      includePatterns: z.array(z.string()).optional(),
+      /**
+       * Patterns to exclude from output
+       * @example ["login", "sign up"]
+       */
+      excludePatterns: z.array(z.string()).optional(),
+      /**
+       * Minimum content length to include in output
+       * @example 100
+       */
+      minContentLength: z.number().int().nonnegative().optional(),
+    })
+    .optional()
+    .default({}),
 });
 
 export type Config = z.infer<typeof configSchema>;
