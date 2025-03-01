@@ -10,16 +10,16 @@ export const defaultConfig: Config = {
   retry: {
     maxRetries: 3,
     initialDelay: 1000,
-    maxDelay: 30000
+    maxDelay: 30000,
   },
   deduplication: {
     enabled: false,
     method: "exact",
-    similarityThreshold: 0.9
+    similarityThreshold: 0.9,
   },
   outputFormat: OutputFormat.JSON,
   contentFiltering: {
     includePatterns: [],
-    excludePatterns: []
-  }
+    excludePatterns: [],
+  },
 };

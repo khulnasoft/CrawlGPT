@@ -5,19 +5,19 @@ export const defaultConfig: Config = {
   match: "https://synopkg.github.io/synopkg/**",
   maxPagesToCrawl: 50,
   outputFileName: "../data/output.json",
-  requestDelay: 1000,  // Default request delay in milliseconds
+  requestDelay: 1000, // Default request delay in milliseconds
   retry: {
     maxRetries: 3,
     initialDelay: 500,
-    maxDelay: 5000
+    maxDelay: 5000,
   },
   deduplication: {
     enabled: true,
-    strategy: 'url'
+    strategy: "url",
   },
-  outputFormat: 'json', // or any other default value e.g. 'xml'
+  outputFormat: "json", // or any other default value e.g. 'xml'
   contentFiltering: {
     enabled: false,
-    keywords: []
-  }
+    keywords: [],
+  },
 };

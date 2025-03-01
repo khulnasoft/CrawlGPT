@@ -72,9 +72,12 @@ export const configSchema = z.object({
     .args(
       z.object({
         page: Page,
-        pushData: z
+          pushData: z
           .function()
-          .args(z.any(), z.string().optional())
+          .args(
+            z.union([z.record(z.any()), z.array(z.record(z.any()))]),
+            z.string().optional()
+          )
           .returns(z.promise(z.void())),
       }),
     )
